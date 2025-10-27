@@ -1,0 +1,20 @@
+name = "rednote-mcp"
+main = "dist/worker.js"
+compatibility_date = "2024-01-01"
+
+# Specify Node.js compatibility for MCP SDK
+compatibility_flags = ["nodejs_compat"]
+
+# Environment variables
+[vars]
+# Add any environment variables here
+
+# KV namespace for storing cookies
+[[kv_namespaces]]
+binding = "COOKIES"
+id = "preview_id"
+preview_id = "preview_id"
+
+# For production, you'll need to create a KV namespace:
+# wrangler kv:namespace create COOKIES
+# Then update the id above with the actual namespace ID

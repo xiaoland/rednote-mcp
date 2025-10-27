@@ -4,6 +4,10 @@
 
 RedNote MCP is a Model Context Protocol (MCP) server for searching and retrieving content from Xiaohongshu (Red Book) platform. It provides intelligent content extraction with automatic login management and parallel processing capabilities.
 
+**🚀 New:** Now deployable to Cloudflare Workers! 
+- **Quick Start**: See [QUICKSTART.md](QUICKSTART.md) for a 5-minute deployment guide
+- **Detailed Guide**: See [CLOUDFLARE_DEPLOYMENT.md](CLOUDFLARE_DEPLOYMENT.md) for comprehensive instructions
+
 ## Features
 
 - **Smart Search**: Keyword-based content search on Xiaohongshu
@@ -18,11 +22,12 @@ RedNote MCP is a Model Context Protocol (MCP) server for searching and retrievin
 
 ## Technical Stack
 
-- **Runtime**: Node.js with TypeScript
-- **Browser Automation**: Playwright
+- **Runtime**: Node.js with TypeScript (or Cloudflare Workers)
+- **Browser Automation**: Playwright (Node.js version)
 - **Protocol**: Model Context Protocol (MCP) SDK
 - **Validation**: Zod schema validation
-- **Package Manager**: pnpm
+- **Package Manager**: pnpm or npm
+- **Deployment**: Node.js stdio transport or Cloudflare Workers HTTP transport
 
 ## Data Structure
 
@@ -45,7 +50,7 @@ interface RedBookNote {
 
 ### Prerequisites
 - Node.js 18+ 
-- pnpm package manager
+- npm or pnpm package manager
 
 ### Setup
 
@@ -57,37 +62,62 @@ cd rednote-mcp
 
 2. Install dependencies:
 ```bash
+npm install
+# or
 pnpm install
 ```
 
-3. Install Playwright browsers:
+3. Install Playwright browsers (for Node.js version only):
 ```bash
+npm exec playwright install
+# or
 pnpm exec playwright install
 ```
 
 4. Build the project:
 ```bash
+npm run build
+# or
 pnpm build
 ```
 
 ## Usage
 
-### Running the MCP Server
+### Node.js Version (Local/Stdio Transport)
+
+#### Running the MCP Server
 
 ```bash
+npm start
+# or
 pnpm start
 ```
 
-### Development Mode
+#### Development Mode
 
 ```bash
+npm run dev
+# or
 pnpm dev
 ```
 
-### Testing
+### Cloudflare Workers Version (HTTP Transport)
 
+See [CLOUDFLARE_DEPLOYMENT.md](CLOUDFLARE_DEPLOYMENT.md) for complete deployment instructions.
+
+Quick start:
 ```bash
-pnpm test
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Test locally
+npm run dev:worker
+
+# Deploy to Cloudflare
+npm run deploy
 ```
 
 ## MCP Client Configuration
@@ -159,23 +189,57 @@ The tool will return structured data including titles, content, author informati
 ```
 rednote-mcp/
 ├── src/
-│   ├── index.ts          # MCP server entry point
-│   └── xiaohongshu.ts    # Core scraping logic
-├── cookies/              # Auto-generated cookie storage
-├── results/              # Optional: saved search results
-├── build/                # Compiled JavaScript output
+│   ├── index.ts            # MCP server entry point (Node.js/stdio)
+│   ├── xiaohongshu.ts      # Core scraping logic (Playwright)
+│   └── worker.ts           # Cloudflare Worker entry point (HTTP)
+├── cookies/                # Auto-generated cookie storage (Node.js)
+├── results/                # Optional: saved search results
+├── dist/                   # Compiled JavaScript output
 ├── package.json
 ├── tsconfig.json
+├── wrangler.toml           # Cloudflare Workers configuration
+└── CLOUDFLARE_DEPLOYMENT.md # Cloudflare deployment guide
 └── README.md
 ```
 
 ### Available Scripts
 
-- `pnpm build` - Build TypeScript to JavaScript
-- `pnpm start` - Run the built MCP server
-- `pnpm dev` - Development mode with auto-reload
-- `pnpm test` - Run tests (if available)
-- `pnpm clean` - Clean build directory
+**Node.js/Local Development:**
+- `npm run build` / `pnpm build` - Build TypeScript to JavaScript
+- `npm start` / `pnpm start` - Run the built MCP server (stdio transport)
+- `npm run dev` / `pnpm dev` - Development mode with auto-reload
+
+**Cloudflare Workers:**
+- `npm run build:worker` - Build and validate Worker deployment
+- `npm run dev:worker` - Run Worker locally for testing
+- `npm run deploy` - Deploy to Cloudflare Workers
+- `npm run preview` - Preview Worker locally
+
+## Deployment Options
+
+### Option 1: Local/Development (Node.js)
+Best for development and local use with full Playwright support.
+
+See the "Usage" section above.
+
+### Option 2: Cloudflare Workers (Production)
+Best for scalable, serverless deployment with global edge network.
+
+**Important:** Requires external scraping service as Workers don't support browser automation.
+
+See [CLOUDFLARE_DEPLOYMENT.md](CLOUDFLARE_DEPLOYMENT.md) for complete instructions.
+
+### Option 3: Traditional Server/VPS
+Deploy the Node.js version to any server:
+- AWS EC2, DigitalOcean Droplet, Linode, etc.
+- Supports full browser automation
+- Run with PM2 or systemd for process management
+
+```bash
+npm install
+npm run build
+pm2 start dist/index.js --name rednote-mcp
+```
 
 ## Troubleshooting
 

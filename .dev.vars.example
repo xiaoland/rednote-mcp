@@ -1,0 +1,7 @@
+# Local development environment variables for Wrangler
+# This file is used by `wrangler dev` for local testing
+# DO NOT commit this file with real credentials!
+
+# Uncomment and set these when testing with external scraping service
+# XIAOHONGSHU_API_URL=http://localhost:3000
+# SCRAPING_SERVICE_API_KEY=dev-secret-key
