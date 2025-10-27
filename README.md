@@ -4,7 +4,9 @@
 
 RedNote MCP is a Model Context Protocol (MCP) server for searching and retrieving content from Xiaohongshu (Red Book) platform. It provides intelligent content extraction with automatic login management and parallel processing capabilities.
 
-**🚀 New:** Now deployable to Cloudflare Workers! See [CLOUDFLARE_DEPLOYMENT.md](CLOUDFLARE_DEPLOYMENT.md) for details.
+**🚀 New:** Now deployable to Cloudflare Workers! 
+- **Quick Start**: See [QUICKSTART.md](QUICKSTART.md) for a 5-minute deployment guide
+- **Detailed Guide**: See [CLOUDFLARE_DEPLOYMENT.md](CLOUDFLARE_DEPLOYMENT.md) for comprehensive instructions
 
 ## Features
 
