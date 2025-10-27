@@ -298,7 +298,8 @@ async function handleMcpRequest(request: Request, env: Env): Promise<Response> {
     console.error("Error handling MCP request:", error);
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : String(error),
+        error: "Internal server error"
+        // Error details are logged but not exposed to the client for security
       }),
       {
         status: 500,
