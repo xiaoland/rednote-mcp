@@ -57,14 +57,28 @@ async function saveCookies(context: BrowserContext): Promise<void> {
 
 // Load cookies
 async function loadCookies(context: BrowserContext): Promise<boolean> {
+  const cookiesFromEnv = process.env.COOKIES;
+
+  if (cookiesFromEnv) {
+    try {
+      const cookies = JSON.parse(cookiesFromEnv);
+      await context.addCookies(cookies);
+      console.error('Successfully loaded cookies from environment variable');
+      return true;
+    } catch (error) {
+      console.error('Failed to parse COOKIES environment variable:', error);
+      throw new Error('Failed to parse COOKIES environment variable');
+    }
+  }
+
   try {
     const cookiesJson = await fs.readFile(COOKIES_PATH, 'utf-8');
     const cookies = JSON.parse(cookiesJson);
     await context.addCookies(cookies);
-    console.error('Successfully loaded cookies');
+    console.error('Successfully loaded cookies from local file');
     return true;
   } catch (error) {
-    console.error('Failed to load cookies:', error);
+    console.error('Failed to load cookies from local file:', error);
     return false;
   }
 }
