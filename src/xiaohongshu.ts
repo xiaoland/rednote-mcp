@@ -19,6 +19,18 @@ export interface RedBookNote {
 // Cookies file path
 const COOKIES_PATH = path.join(process.cwd(), 'cookies', 'xiaohongshu-cookies.json');
 
+export async function setLoginCookies(cookies: object[]): Promise<void> {
+  try {
+    const cookiesDir = path.dirname(COOKIES_PATH);
+    await fs.mkdir(cookiesDir, { recursive: true });
+    await fs.writeFile(COOKIES_PATH, JSON.stringify(cookies, null, 2));
+    console.error('Successfully saved cookies via /login endpoint');
+  } catch (error) {
+    console.error('Failed to save cookies:', error);
+    throw new Error('Failed to save cookies');
+  }
+}
+
 // Check if cookies exist
 async function cookiesExist(): Promise<boolean> {
   try {
@@ -421,99 +433,57 @@ async function performSearch(page: Page, keyword: string, count: number, context
 // Search Xiaohongshu content function
 export async function searchXiaohongshu(query: string, count: number = 5): Promise<RedBookNote[]> {
   let browser: Browser | null = null;
-  
+
   try {
     const searchKeyword = query;
     console.error(`Search keyword: ${searchKeyword}`);
-    
-    // Check if login is needed
-    const needLogin = !await cookiesExist();
-    
-    // Create browser instance
-    browser = await chromium.launch({
-      headless: !needLogin, // If login needed, show browser
-    });
-    
-    if (needLogin) {
-      // Handle login process
-      const loginSuccess = await handleLogin(browser);
-      if (!loginSuccess) {
-        throw new Error('User login failed, unable to continue search');
-      }
-    }
-      
-    await browser.close();
-    
-    browser = await chromium.launch({ headless: true });
 
-    // Create new context for search
+    // --- Start Headless ---
+    browser = await chromium.launch({ headless: true });
     let context = await browser.newContext({
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
     });
-    
-    // Load cookies
-    await loadCookies(context);
-    
-    // Create page
+
     let page = await context.newPage();
-    
-    // Verify login status
-    await page.goto('https://www.xiaohongshu.com/explore');
-    await page.waitForTimeout(5000);
-    
+
+    // Load cookies and check login
+    const cookiesLoaded = await loadCookies(context);
+    await page.goto('https://www.xiaohongshu.com/explore', { timeout: 30000, waitUntil: 'domcontentloaded' });
     const isLoggedIn = await checkLoginStatus(page);
-    
-    if (!isLoggedIn) {
-      console.error('Cookies expired or invalid, need to login again');
-      
-      // Close current browser context
-      await context.close();
-      
-      // Need to change browser headless mode, close browser first
-      await browser.close();
-      
-      // Restart browser in headed mode
+
+    if (!isLoggedIn || !cookiesLoaded) {
+      console.error('Not logged in or cookies failed to load. Attempting manual login.');
+      // --- Manual Login Fallback ---
+      await browser.close(); // Close headless browser
+
+      // Launch headful browser for login
       browser = await chromium.launch({ headless: false });
-      
-      // Login again
       const loginSuccess = await handleLogin(browser);
+      await browser.close(); // Close headful browser
+
       if (!loginSuccess) {
         throw new Error('User login failed, unable to continue search');
       }
 
-      await context.close();
-      
-      await browser.close();
-      
+      // --- Resume Headless for Search ---
       browser = await chromium.launch({ headless: true });
-      
-      // After successful login, create new search context
       context = await browser.newContext({
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
       });
-      
-      // Load latest cookies
-      await loadCookies(context);
-      
-      // Create new page
       page = await context.newPage();
+      await loadCookies(context);
     }
-    
-    // Already logged in, proceed with search
+
+    // Proceed with search
     await performSearch(page, searchKeyword, count, context);
-    
-    // Get search results - pass context parameter
     const notes = await extractNotes(page, count, context);
-    
-    // Save latest cookies
     await saveCookies(context);
-    
+
     return notes;
   } catch (error) {
     console.error('Error searching Xiaohongshu:', error);
     throw error;
   } finally {
-    // Ensure browser is closed
     if (browser) {
       await browser.close();
     }
