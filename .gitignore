@@ -36,3 +36,6 @@ debug-*.png
 Thumbs.db 
 cookies/
 results/
+
+mock/**
+cookies/**

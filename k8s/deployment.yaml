@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rednote-mcp
+  labels:
+    app: rednote-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rednote-mcp
+  template:
+    metadata:
+      labels:
+        app: rednote-mcp
+    spec:
+      containers:
+      - name: rednote-mcp
+        image: ghcr.io/xiaoland/rednote-mcp:latest  # Built automatically from develop branch
+        ports:
+        - containerPort: 8000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        # Add other environment variables as needed
+        volumeMounts:
+        - name: cookies-volume
+          mountPath: /app/cookies
+      volumes:
+      - name: cookies-volume
+        configMap:
+          name: rednote-mcp-cookies

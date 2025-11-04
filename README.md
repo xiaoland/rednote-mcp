@@ -193,3 +193,82 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Disclaimer
 
 This tool is for educational and research purposes. Please respect Xiaohongshu's terms of service and rate limits when using this tool.
+
+## Kubernetes Deployment
+
+### Prerequisites
+- Docker
+- Kubernetes cluster (e.g., Minikube, EKS, GKE)
+- kubectl configured
+
+### Build and Push Docker Image
+
+1. Build the Docker image:
+```bash
+docker build -t rednote-mcp:latest .
+```
+
+2. Tag and push to your registry (replace with your registry):
+```bash
+docker tag rednote-mcp:latest your-registry/rednote-mcp:latest
+docker push your-registry/rednote-mcp:latest
+```
+
+**Automated CI/CD**: The project includes a GitHub Actions workflow that automatically builds and pushes the Docker image to GitHub Container Registry (`ghcr.io`) whenever code is pushed to the `develop` branch. The image will be available at `ghcr.io/xiaoland/rednote-mcp:latest`.
+
+### Deploy to Kubernetes
+
+1. The Docker image is automatically built and pushed to GitHub Container Registry on pushes to the `develop` branch.
+
+2. Update the host in `k8s/ingress.yaml` if using Ingress:
+```yaml
+host: your-domain.com
+```
+
+3. Apply the Kubernetes manifests:
+```bash
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+kubectl apply -f k8s/ingress.yaml
+```
+
+4. Check deployment status:
+```bash
+kubectl get pods
+kubectl get services
+kubectl get ingress
+```
+
+### Access the Application
+
+- **ClusterIP Service**: Access via `http://rednote-mcp-service:8000` from within the cluster
+- **Ingress**: Access via the configured domain (e.g., `http://your-domain.com`)
+
+### Updating Cookies
+
+To update the cookies in the ConfigMap:
+
+1. Update the `k8s/configmap.yaml` file with new cookie data
+2. Apply the changes:
+```bash
+kubectl apply -f k8s/configmap.yaml
+```
+3. Restart the deployment:
+```bash
+kubectl rollout restart deployment rednote-mcp
+```
+
+### Scaling
+
+To scale the deployment:
+```bash
+kubectl scale deployment rednote-mcp --replicas=3
+```
+
+### Logs
+
+View application logs:
+```bash
+kubectl logs -f deployment/rednote-mcp
+```
