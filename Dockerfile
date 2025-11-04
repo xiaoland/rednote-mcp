@@ -64,6 +64,9 @@ RUN pnpm build
 # Create directories for cookies and mock data
 RUN mkdir -p cookies mock
 
+# Copy mock data 
+COPY mock/ ./mock/
+
 # Expose port
 EXPOSE 8000
 

@@ -13,4 +13,3 @@ dist
 .vscode
 k8s/
 Procfile
-mock/

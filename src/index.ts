@@ -24,30 +24,39 @@ const searchSchema = z.object({
 });
 
 app.get('/search', async (req, res) => {
-  const MOCK_PATH = path.join(process.cwd(), 'mock', 'example_search_result.json');
-  const data = JSON.parse(await fs.readFile(MOCK_PATH, 'utf-8'));
-  return res.status(200).json(data);
-  // try {
-  //   // Validate the query parameters
-  //   const validationResult = searchSchema.safeParse(req.query);
+  try {
+    // Validate the query parameters
+    const validationResult = searchSchema.safeParse(req.query);
 
-  //   if (!validationResult.success) {
-  //     return res.status(400).json({ error: "Invalid query parameters", details: validationResult.error.flatten() });
-  //   }
+    if (!validationResult.success) {
+      return res.status(400).json({ error: "Invalid query parameters", details: validationResult.error.flatten() });
+    }
 
-  //   const { query, count } = validationResult.data;
+    const { query, count } = validationResult.data;
 
-  //   console.error(`Searching Xiaohongshu: ${query}, Count: ${count}`);
+    console.error(`Searching Xiaohongshu: ${query}, Count: ${count}`);
 
-  //   // Call the search function
-  //   const results = await searchXiaohongshu(query, count);
-  //   res.status(200).json(results);
+    // Call the search function
+    const results = await searchXiaohongshu(query, count);
+    res.status(200).json(results);
 
-  // } catch (error) {
-  //   console.error("Xiaohongshu search error:", error);
-  //   const errorMessage = error instanceof Error ? error.message : String(error);
-  //   res.status(500).json({ error: "Failed to search Xiaohongshu", details: errorMessage });
-  // }
+  } catch (error) {
+    console.error("Xiaohongshu search error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ error: "Failed to search Xiaohongshu", details: errorMessage });
+  }
+});
+
+app.get('/mocking/search', async (req, res) => {
+  try {
+    const MOCK_PATH = path.join(process.cwd(), 'mock', 'example_search_result.json');
+    const data = JSON.parse(await fs.readFile(MOCK_PATH, 'utf-8'));
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error("Failed to read mock search result:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ error: "Failed to load mock search result", details: errorMessage });
+  }
 });
 
 app.put('/login', async (req, res) => {
