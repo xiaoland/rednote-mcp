@@ -227,7 +227,6 @@ host: your-domain.com
 
 3. Apply the Kubernetes manifests:
 ```bash
-kubectl apply -f k8s/configmap.yaml
 kubectl apply -f k8s/deployment.yaml
 kubectl apply -f k8s/service.yaml
 kubectl apply -f k8s/ingress.yaml
@@ -244,20 +243,6 @@ kubectl get ingress
 
 - **ClusterIP Service**: Access via `http://rednote-mcp-service:8000` from within the cluster
 - **Ingress**: Access via the configured domain (e.g., `http://your-domain.com`)
-
-### Updating Cookies
-
-To update the cookies in the ConfigMap:
-
-1. Update the `k8s/configmap.yaml` file with new cookie data
-2. Apply the changes:
-```bash
-kubectl apply -f k8s/configmap.yaml
-```
-3. Restart the deployment:
-```bash
-kubectl rollout restart deployment rednote-mcp
-```
 
 ### Scaling
 

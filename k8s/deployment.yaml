@@ -23,10 +23,3 @@ spec:
         - name: NODE_ENV
           value: "production"
         # Add other environment variables as needed
-        volumeMounts:
-        - name: cookies-volume
-          mountPath: /app/cookies
-      volumes:
-      - name: cookies-volume
-        configMap:
-          name: rednote-mcp-cookies
