@@ -2,6 +2,7 @@
 
 import express from 'express';
 import { searchXiaohongshu, setLoginCookies } from "./xiaohongshu.js";
+import { searchCache } from "./cache.js";
 import { z } from "zod";
 import path from 'path';
 import * as fs from 'fs/promises';
@@ -36,8 +37,20 @@ app.get('/search', async (req, res) => {
 
     console.error(`Searching Xiaohongshu: ${query}, Count: ${count}`);
 
-    // Call the search function
+    // Check cache first
+    const cachedResults = await searchCache.get(query, count);
+    if (cachedResults) {
+      console.error(`Returning cached results for: ${query}`);
+      return res.status(200).json(cachedResults);
+    }
+
+    // Cache miss - perform actual search
+    console.error(`Cache miss - performing search for: ${query}`);
     const results = await searchXiaohongshu(query, count);
+    
+    // Store results in cache
+    await searchCache.set(query, count, results);
+    
     res.status(200).json(results);
 
   } catch (error) {
@@ -73,6 +86,29 @@ app.put('/login', async (req, res) => {
     console.error("Failed to set login cookies:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ error: "Failed to set login cookies", details: errorMessage });
+  }
+});
+
+// Cache management endpoints
+app.get('/cache/stats', async (req, res) => {
+  try {
+    const stats = await searchCache.getStats();
+    res.status(200).json(stats);
+  } catch (error) {
+    console.error("Failed to get cache stats:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ error: "Failed to get cache stats", details: errorMessage });
+  }
+});
+
+app.delete('/cache', async (req, res) => {
+  try {
+    await searchCache.clear();
+    res.status(204).send();
+  } catch (error) {
+    console.error("Failed to clear cache:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ error: "Failed to clear cache", details: errorMessage });
   }
 });
 
